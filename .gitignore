@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/CppProperties.json
+/.vs/7zip/FileContentIndex
+/.vs/7zip/v17/ipch/AutoPCH
+/.vs
+/CPP/7zip/Bundles/SFXSetup/x64
