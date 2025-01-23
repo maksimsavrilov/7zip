@@ -1,6 +1,7 @@
 // Main.cpp
 
 #include "StdAfx.h"
+#include <filesystem>
 
 #include "../../../../C/DllSecur.h"
 
@@ -37,9 +38,9 @@ extern
 bool g_DisableUserQuestions;
 bool g_DisableUserQuestions;
 
-static CFSTR const kTempDirPrefix = FTEXT("7zS");
 
 #define MY_SHELL_EXECUTE
+
 
 static bool ReadDataString(CFSTR fileName, LPCSTR startID,
     LPCSTR endID, AString &stringResult)
@@ -131,6 +132,14 @@ static void ShowErrorMessageSpec(const UString &name)
   ShowErrorMessage(NULL, message);
 }
 
+static FString getEnvVar(std::string const& key)
+{
+    #pragma warning(disable : 4996)
+    char* val = getenv(key.c_str());
+    return val == NULL ? FString("") : FString(val);
+}
+
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */,
     #ifdef UNDER_CE
     LPWSTR
@@ -147,7 +156,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */,
   LoadSecurityDlls();
   #endif
 
-  // InitCommonControls();
 
   UString archiveName, switches;
   #ifdef MY_SHELL_EXECUTE
@@ -177,7 +185,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */,
 
   UString dirPrefix ("." STRING_PATH_SEPARATOR);
   UString appLaunched;
-  bool showProgress = true;
+  bool showProgress = false;
+  const FString tempDirPath = getEnvVar("SYSTEMDRIVE") + FString("\\plesk_migrator\\rpc-agent");
+  
   if (!config.IsEmpty())
   {
     CObjectVector<CTextConfigPair> pairs;
@@ -189,9 +199,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */,
     }
     const UString friendlyName = GetTextConfigValue(pairs, "Title");
     const UString installPrompt = GetTextConfigValue(pairs, "BeginPrompt");
-    const UString progress = GetTextConfigValue(pairs, "Progress");
-    if (progress.IsEqualTo_Ascii_NoCase("no"))
-      showProgress = false;
     const int index = FindTextConfigItem(pairs, "Directory");
     if (index >= 0)
       dirPrefix = pairs[index].String;
@@ -207,15 +214,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */,
     executeFile = GetTextConfigValue(pairs, "ExecuteFile");
     executeParameters = GetTextConfigValue(pairs, "ExecuteParameters");
     #endif
-  }
 
-  CTempDir tempDir;
-  if (!tempDir.Create(kTempDirPrefix))
-  {
-    if (!assumeYes)
-      ShowErrorMessage(L"Cannot create temp folder archive");
-    return 1;
   }
+  std::filesystem::create_directories(tempDirPath.Ptr());
 
   CCodecs *codecs = new CCodecs;
   CMyComPtr<IUnknown> compressCodecsInfo = codecs;
@@ -228,8 +229,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */,
     }
   }
 
-  const FString tempDirPath = tempDir.GetPath();
-  // tempDirPath = L"M:\\1\\"; // to test low disk space
   {
     bool isCorrupt = false;
     UString errorMessage;

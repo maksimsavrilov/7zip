@@ -1,5 +1,7 @@
 LIBS = $(LIBS) oleaut32.lib ole32.lib
 
+CXX_STD_FLAGS = /std:c++17
+
 # CFLAGS = $(CFLAGS) -DZ7_NO_UNICODE
 !IFNDEF MY_NO_UNICODE
 # CFLAGS = $(CFLAGS) -DUNICODE -D_UNICODE
@@ -69,7 +71,7 @@ CFLAGS_WARN_LEVEL = -W4
 CFLAGS_WARN_LEVEL = -Wall
 !ENDIF
 
-CFLAGS = $(CFLAGS) -nologo -c -Fo$O/ $(CFLAGS_WARN_LEVEL) -WX -EHsc -Gy -GR- -GF
+CFLAGS = $(CFLAGS) -nologo -c -Fo$O/ $(CFLAGS_WARN_LEVEL) -WX -EHsc -Gy -GR- -GF $(CXX_STD_FLAGS)
 
 !IF "$(CC)" == "clang-cl"
 
